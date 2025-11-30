@@ -10,6 +10,8 @@ import 'package:fitfriends_tracker/iniciarActividad.dart';
 import 'package:fitfriends_tracker/notifs.dart';
 import 'package:fitfriends_tracker/perfil.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 
 class drawerPage extends StatefulWidget {
@@ -21,8 +23,35 @@ class drawerPage extends StatefulWidget {
 
 class _drawerPageState extends State<drawerPage> {
   //variables
+  String nombreUsuario = "";
   int _index = 0; //cambio de páginas
 
+  @override
+  void initState() {
+    super.initState();
+    cargarUsuario();
+  }
+
+  Future<void> cargarUsuario() async {
+    try {
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+
+      final doc = await FirebaseFirestore.instance.collection("users").doc(uid).get();
+
+      if (doc.exists) {
+        setState(() {
+          nombreUsuario = doc["nombre"];
+        });
+      } else {
+        setState(() {
+          nombreUsuario = "Usuario";
+        });
+      }
+    } catch (e) {
+      print("Error cargando usuario: $e");
+      setState(() => nombreUsuario = "Usuario");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,11 +71,11 @@ class _drawerPageState extends State<drawerPage> {
             DrawerHeader(
                 decoration: BoxDecoration(color: Colors.blueAccent),
                 child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     //deberia ser CircleAvatar
                     SizedBox(height: 10,),
-                    Text("el nombre del usuario", style: TextStyle(color: Colors.white, fontSize: 30),)
+                    Text(nombreUsuario.isEmpty ? "Cargando..." : nombreUsuario, style: TextStyle(color: Colors.white, fontSize: 30),)
                   ],
                 )
             ),
@@ -59,7 +88,13 @@ class _drawerPageState extends State<drawerPage> {
             _itemDrawer(4,Icons.edit_note_rounded, "Configuración"),
 
             Divider(),
-            MaterialButton(onPressed: (){},child: Text("Cerrar Sesión"),)
+            MaterialButton(
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut();
+                Navigator.popUntil(context, (route) => route.isFirst);
+              },
+              child: Text("Cerrar Sesión"),
+            )
           ],
         ),
       ),
@@ -71,7 +106,7 @@ class _drawerPageState extends State<drawerPage> {
     switch(_index){
       //el primero es la página local, el homePage
       case 0: return Scaffold(
-            backgroundColor: Colors.white60,
+        backgroundColor: Colors.white60,
         body: SingleChildScrollView(
           padding: EdgeInsets.all(16),
           child: Column(
@@ -79,13 +114,11 @@ class _drawerPageState extends State<drawerPage> {
             children: [
               // ----------------- BIENVENIDA -----------------------
               Text(
-                "Hola, Paulina ", //nombre del usuario
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                nombreUsuario.isEmpty ? "Hola..." : "Hola, $nombreUsuario", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 20),
 
               // ------------------ PROGRESO DEL DÍA ----------------
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

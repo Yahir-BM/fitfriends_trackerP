@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "681304030968",
+    "project_id": "fitfriends-tracker-app",
+    "storage_bucket": "fitfriends-tracker-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:681304030968:android:e5d86da58fe0314cfa850d",
+        "android_client_info": {
+          "package_name": "com.example.fitfriends_tracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDGDZvcdLDnAHuM6dYzkCAwn_x_BECMqnQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

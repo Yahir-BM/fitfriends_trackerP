@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fitfriends_tracker/drawerPage.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class pag_autenticacion extends StatefulWidget {
   const pag_autenticacion({super.key});
@@ -17,6 +19,80 @@ class _pag_autenticacionState extends State<pag_autenticacion> {
   final TextEditingController contrasenaCont = TextEditingController();
   final TextEditingController emailCont = TextEditingController();
 
+  //Función para registrar
+  Future<void> registrar() async {
+    String nombre = nombreCont.text.trim();
+    String email = emailCont.text.trim();
+    String pass = contrasenaCont.text.trim();
+
+    // Validación rápida
+    if (nombre.isEmpty || email.isEmpty || pass.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Por favor, llena todos los campos.")),
+      );
+      return;
+    }
+
+    try {
+      // Crear usuario en Firebase Auth
+      UserCredential cred = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: pass);
+
+      String uid = cred.user!.uid;
+
+      // Guardar en Firestore AUTOMÁTICAMENTE
+      await FirebaseFirestore.instance.collection("users").doc(uid).set({
+        "nombre": nombre,
+        "email": email,
+        "fechaRegistro": DateTime.now(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Cuenta creada correctamente")),
+      );
+
+      // Ir a la app principal
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => drawerPage()),
+      );
+
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error Firebase: ${e.message}")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error inesperado: $e")),
+      );
+    }
+  }
+
+  //Función para iniciar sesión
+  Future<void> login() async {
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: emailCont.text.trim(),
+          password: contrasenaCont.text.trim(),
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Bienvenido!")),
+      );
+
+      //Navegar al drawer
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => drawerPage()),
+      );
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,7 +102,7 @@ class _pag_autenticacionState extends State<pag_autenticacion> {
           child: Padding(
             padding: EdgeInsets.all(20),
             child: AnimatedSwitcher(
-              duration: Duration(milliseconds: 800),
+              duration: Duration(milliseconds: 500),
               child: mostrarLogin ? LoginCard() : RegistroCard(),
             )
           ),
@@ -60,7 +136,7 @@ class _pag_autenticacionState extends State<pag_autenticacion> {
             TextField(
               controller: emailCont,
               decoration: InputDecoration(
-                labelText: "Correo electronico",
+                labelText: "Correo electrónico",
                 border: OutlineInputBorder(),
               ),
             ),
@@ -71,7 +147,7 @@ class _pag_autenticacionState extends State<pag_autenticacion> {
               controller: contrasenaCont,
               obscureText: true,
               decoration: InputDecoration(
-                labelText: "Contrasena",
+                labelText: "Contraseña",
                 border: OutlineInputBorder(),
               ),
             ),
@@ -81,23 +157,7 @@ class _pag_autenticacionState extends State<pag_autenticacion> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                  onPressed: (){
-                    //Login statico temporal
-                    String email = emailCont.text.trim();
-                    String pass = contrasenaCont.text.trim();
-
-                    if (email == 'admin@gmail.com' && pass == '1234') {
-                      Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => drawerPage())
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Credenciales incorrectas"))
-                      );
-                    }
-                    //Para conectar a firebase
-                  },
+                  onPressed: login,
                   child: Text("Iniciar sesion")
               ),
             ),
@@ -146,7 +206,7 @@ class _pag_autenticacionState extends State<pag_autenticacion> {
             TextField(
               controller: emailCont,
               decoration: InputDecoration(
-                labelText: "Correo electronico",
+                labelText: "Correo electrónico",
                 border: OutlineInputBorder(),
               ),
             ),
@@ -157,7 +217,7 @@ class _pag_autenticacionState extends State<pag_autenticacion> {
               controller: contrasenaCont,
               obscureText: true,
               decoration: InputDecoration(
-                labelText: "Contrasena",
+                labelText: "Contraseña",
                 border: OutlineInputBorder()
               ),
             ),
@@ -167,13 +227,10 @@ class _pag_autenticacionState extends State<pag_autenticacion> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                  onPressed: (){
-                    //Para registrar con firebase
-                  },
+                  onPressed: registrar,
                   child: Text("Registrate"),
               ),
             ),
-
             SizedBox(height: 20),
 
             GestureDetector(
