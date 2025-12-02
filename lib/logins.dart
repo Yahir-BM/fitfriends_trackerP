@@ -40,11 +40,14 @@ class _pag_autenticacionState extends State<pag_autenticacion> {
 
       String uid = cred.user!.uid;
 
-      // Guardar en Firestore AUTOMÁTICAMENTE
+      //Campos que se van a generar en Firestore AUTOMÁTICAMENTE
       await FirebaseFirestore.instance.collection("users").doc(uid).set({
         "nombre": nombre,
         "email": email,
         "fechaRegistro": DateTime.now(),
+        "peso": null,
+        "altura": null,
+        "amigos": [],
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -102,7 +105,7 @@ class _pag_autenticacionState extends State<pag_autenticacion> {
           child: Padding(
             padding: EdgeInsets.all(20),
             child: AnimatedSwitcher(
-              duration: Duration(milliseconds: 500),
+              duration: Duration(milliseconds: 400),
               child: mostrarLogin ? LoginCard() : RegistroCard(),
             )
           ),
@@ -114,15 +117,28 @@ class _pag_autenticacionState extends State<pag_autenticacion> {
   Widget LoginCard() {
     return Card(
       key: ValueKey("loginCard"),
-      elevation: 5,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 8,
+      shadowColor: Colors.black26,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
       child: Padding(
-        padding: EdgeInsets.all(25),
+        padding: EdgeInsets.all(30),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text("Iniciar sesion", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
+            Icon(Icons.fitness_center, size: 60, color: Colors.blueAccent,),
+            SizedBox(height: 15,),
+            
+            Text("FitFriends", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.blueAccent.shade700),),
+
+            SizedBox(height: 20,),
+            
+            Text("Iniciar sesion", style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),),
             SizedBox(height: 25),
+
+            _inputText(emailCont, "Correo electrónico", Icons.email),
+            SizedBox(height: 15,),
+
+            _inputText(contrasenaCont, "Contraseña", Icons.lock, obscure: true),
 
             /*
             TextField(
@@ -133,7 +149,7 @@ class _pag_autenticacionState extends State<pag_autenticacion> {
               ),
             ),*/
 
-            TextField(
+          /*  TextField(
               controller: emailCont,
               decoration: InputDecoration(
                 labelText: "Correo electrónico",
@@ -150,17 +166,20 @@ class _pag_autenticacionState extends State<pag_autenticacion> {
                 labelText: "Contraseña",
                 border: OutlineInputBorder(),
               ),
-            ),
+            ), */
 
-            SizedBox(height: 20),
+            SizedBox(height: 25),
+            
+            _botonPrincipal("Iniciar sesión", login),
 
+            /*
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                   onPressed: login,
                   child: Text("Iniciar sesion")
               ),
-            ),
+            ), */
 
             SizedBox(height: 20,),
 
@@ -170,7 +189,7 @@ class _pag_autenticacionState extends State<pag_autenticacion> {
                   mostrarLogin = false;
                 });
               },
-              child: Text("Aun no tienes cuenta? Registrate aqui!", style: TextStyle(color: Colors.blue, decoration: TextDecoration.underline),),
+              child: Text("Aun no tienes cuenta? !Registrate aqui!", style: TextStyle(color: Colors.blue, decoration: TextDecoration.underline),),
             ),
           ],
         ),
@@ -182,17 +201,22 @@ class _pag_autenticacionState extends State<pag_autenticacion> {
   Widget RegistroCard() {
     return Card(
       key: ValueKey("registroCard"),
-      elevation: 5,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 8,
+      shadowColor: Colors.black26,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
       child: Padding(
-          padding: EdgeInsets.all(25),
+        padding: EdgeInsets.all(30),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Icon(Icons.person_add, size: 60, color: Colors.purpleAccent,),
+            SizedBox(height: 10,),
+            
             Text("Crear Cuenta", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),),
 
             SizedBox(height: 25),
 
+            /*
             TextField(
               controller: nombreCont,
               decoration: InputDecoration(
@@ -220,17 +244,27 @@ class _pag_autenticacionState extends State<pag_autenticacion> {
                 labelText: "Contraseña",
                 border: OutlineInputBorder()
               ),
-            ),
+            ),*/
+            _inputText(nombreCont, "Nombre de usuario", Icons.person),
+            SizedBox(height: 15,),
+            
+            _inputText(emailCont, "Correo electrónico", Icons.email),
+            SizedBox(height: 15,),
 
-            SizedBox(height: 20,),
+            _inputText(contrasenaCont, "Contraseña", Icons.lock, obscure: true),
 
-            SizedBox(
+            SizedBox(height: 25,),
+
+            /*SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                   onPressed: registrar,
                   child: Text("Registrate"),
               ),
-            ),
+            ), */
+            
+            _botonPrincipal("Registrarse", registrar),
+
             SizedBox(height: 20),
 
             GestureDetector(
@@ -243,6 +277,47 @@ class _pag_autenticacionState extends State<pag_autenticacion> {
             )
           ],
         ),
+      ),
+    );
+  }
+
+  //Widget que eemplaza los texfields normalones por unos un poco mejor detallados
+  Widget _inputText(TextEditingController controller, String label, IconData icon,
+      {bool obscure = false}) {
+    return TextField(
+      controller: controller,
+      obscureText: obscure,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: Colors.blueAccent),
+        filled: true,
+        fillColor: Colors.grey.shade200,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+
+  //Widget que remplaza el elevated buttom por uno con mejor diseño
+  Widget _botonPrincipal(String texto, Function accion) {
+    return Container(
+      width: double.infinity,
+      height: 50,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        gradient: LinearGradient(
+          colors: [Colors.blueAccent, Colors.purpleAccent],
+        ),
+      ),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+        ),
+        onPressed: () => accion(),
+        child: Text(texto, style: TextStyle(fontSize: 18)),
       ),
     );
   }
