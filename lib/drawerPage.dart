@@ -273,6 +273,7 @@ class _drawerPageState extends State<drawerPage> {
       case 3: return Perfil();
       case 4: return Config();
     }
+    return null;
   }
 
   //Metodo para lso iconos en el drawe, los que llevan a las diferentes paginas
@@ -288,14 +289,14 @@ class _drawerPageState extends State<drawerPage> {
       title: Row(
         children: [
           Expanded(child: Icon(icono, size: 30,)),
-          Expanded(child: Text(texto, style: TextStyle(fontSize: 20),), flex: 2,)
+          Expanded(flex: 2,child: Text(texto, style: TextStyle(fontSize: 20),),)
         ],
       ),
     );
   }
 
   //maybe se le tenga que agregar después algo pa lo de la caminata
-  _dailyCard(String s, String value, IconData icon) {
+  Container _dailyCard(String s, String value, IconData icon) {
     return Container(
       width: 150,
       padding: EdgeInsets.all(12),
