@@ -1,7 +1,3 @@
-//perfil con info del usuario (por si laa quiere cambiar)
-//Foto (con Firebase Storage),Nombre
-// Email Peso, altura (opcional), Botón “Editar Perfil
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -67,9 +63,14 @@ class _PerfilState extends State<Perfil> {
 
   @override
   Widget build(BuildContext context) {
+
     if (cargando) {
       return Center(child: CircularProgressIndicator(),);
     }
+
+    DateTime fecha = datosUser!["fechaRegistro"].toDate();
+    String fechaFormateada = "${fecha.day.toString().padLeft(2,"0")}/${fecha.month.toString().padLeft(2,"0")}/${fecha.year.toString().substring(2)}";
+
 
     return Scaffold(
       appBar: AppBar(
@@ -126,8 +127,7 @@ class _PerfilState extends State<Perfil> {
                     children: [
                       infoItem("Peso:", "${datosUser!["peso"]} kg"),
                       infoItem("Altura:", "${datosUser!["altura"]} cm"),
-                      infoItem("Fecha de registro",
-                          datosUser!["fechaRegistro"].toDate().toString()),
+                      infoItem("Fecha de Registro:", fechaFormateada),
                       infoItem("Amigos", "${datosUser!["amigos"].length} usuarios"),
                     ],
                   ),
@@ -138,11 +138,11 @@ class _PerfilState extends State<Perfil> {
             SizedBox(height: 20,),
             //Boton
             Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: 20),
               child: Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [Colors.blueAccent, Colors.purpleAccent],
+                  gradient: LinearGradient(colors: [Colors.blueAccent, Colors.cyanAccent],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                   ),
@@ -152,7 +152,7 @@ class _PerfilState extends State<Perfil> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.transparent,
                     shadowColor: Colors.transparent,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    padding: EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15),
                     ),
@@ -160,9 +160,7 @@ class _PerfilState extends State<Perfil> {
                   onPressed: () {
                     Navigator.pushNamed(context, "/editarPerfil");
                   },
-                  child: const Text(
-                    "Editar Perfil",
-                    style: TextStyle(fontSize: 18, color: Colors.white),
+                  child: Text("Editar Perfil", style: TextStyle(fontSize: 18, color: Colors.white),
                   ),
                 ),
               ),

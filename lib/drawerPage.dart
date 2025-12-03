@@ -297,8 +297,8 @@ class _drawerPageState extends State<drawerPage> {
   //maybe se le tenga que agregar después algo pa lo de la caminata
   _dailyCard(String s, String value, IconData icon) {
     return Container(
-      width: 150,
-      padding: EdgeInsets.all(12),
+      width: 110,
+      padding: EdgeInsets.all(2),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -317,8 +317,6 @@ class _drawerPageState extends State<drawerPage> {
       ),
     );
   }
-
-
-
+  
 }
 

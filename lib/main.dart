@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'logins.dart';
+import 'editarPerfil.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -10,7 +11,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  print("Firebase inicializado correctamente");  // <--- prueba
+  print("Firebase inicializado correctamente");  //prueba
 
   runApp(const MyApp());
 }
@@ -23,6 +24,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: pag_autenticacion(),
+      routes: {
+        "/editarPerfil": (context) => Editarperfil(),
+      },
     );
   }
 }

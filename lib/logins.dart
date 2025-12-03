@@ -281,9 +281,8 @@ class _pag_autenticacionState extends State<pag_autenticacion> {
     );
   }
 
-  //Widget que eemplaza los texfields normalones por unos un poco mejor detallados
-  Widget _inputText(TextEditingController controller, String label, IconData icon,
-      {bool obscure = false}) {
+  //Widget que reemplaza los texfields normalones por unos un poco mejor detallados
+  Widget _inputText(TextEditingController controller, String label, IconData icon, {bool obscure = false}) {
     return TextField(
       controller: controller,
       obscureText: obscure,
