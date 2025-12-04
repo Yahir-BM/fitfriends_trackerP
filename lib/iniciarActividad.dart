@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
@@ -33,6 +34,19 @@ class Actividad extends StatefulWidget {
 }
 
 class _ActividadState extends State<Actividad> {
+
+  Future<void> sendNotification(String title, String content) async {
+    AwesomeNotifications().createNotification(
+      content: NotificationContent(
+        id: 1,
+        channelKey: 'basic_channel',
+        title: title,
+        body: content,
+      ),
+    );
+  }
+
+
   int countdown = 3;
   bool isPausado = false;
   final Random random = Random();
@@ -127,6 +141,7 @@ class _ActividadState extends State<Actividad> {
     CargarUltimaActividad();
     CargarIdAmigo(); 
     empezarContador();
+    sendNotification('FitFriends', 'Iniciando tu actividad');
   }
 
   @override
@@ -321,6 +336,7 @@ class _ActividadState extends State<Actividad> {
   }
 
   void FinalizaActividad() {
+    sendNotification('FitFriends', 'Terminando tu actividad');
     contadorActividad?.cancel();
     gpsTimer?.cancel();
 

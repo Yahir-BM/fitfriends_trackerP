@@ -7,12 +7,34 @@ import 'drawerPage.dart';
 import 'package:provider/provider.dart';
 import 'modeloDatosCompartidos.dart';
 
+import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:flutter/material.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   print("Firebase inicializado correctamente"); //prueba
+
+  AwesomeNotifications().initialize(
+    null, // icono por defecto
+    [
+      NotificationChannel(
+        channelKey: 'basic_channel',
+        channelName: 'Basic Notifications',
+        channelDescription: 'Basic channel for notifications',
+        defaultColor: Colors.blue,
+        importance: NotificationImportance.High,
+      )
+    ],
+  );
+
+  await AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
+    if (!isAllowed) {
+      AwesomeNotifications().requestPermissionToSendNotifications();
+    }
+  });
 
   runApp(
     ChangeNotifierProvider<ActivityManager>.value(
