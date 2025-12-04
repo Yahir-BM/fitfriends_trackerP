@@ -8,8 +8,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-
+import 'package:pedometer/pedometer.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:io' show Platform;
 
 class ActivityData {
   static int finalPasos = 0;
@@ -58,9 +59,71 @@ class _ActividadState extends State<Actividad> {
   double kilometros = 0.0;
   int minutos = 0;
 
+  late Stream<StepCount> _stepCountStream;
+  int _initialSteps = 0; // Para calcular los pasos tomados DURANTE la actividad
+  bool _pedometerInitialized = false;
+
+  void _initPedometer() async {
+    try {
+      _stepCountStream = Pedometer.stepCountStream;
+
+      // Obtener el conteo inicial
+      Pedometer.stepCountStream.listen((StepCount event) {
+        if (!_pedometerInitialized) {
+          _initialSteps = event.steps;
+          _pedometerInitialized = true;
+          print("Pasos iniciales: $_initialSteps");
+        }
+
+        // Calcular pasos tomados DURANTE la actividad (restando los iniciales)
+        int stepsDuringActivity = event.steps - _initialSteps;
+
+        if (!isPausado && countdown == 0) {
+          setState(() {
+            pasos = stepsDuringActivity > 0 ? stepsDuringActivity : 0;
+            kilometros = pasos / PASOS_POR_KM;
+          });
+        }
+      }).onError((error) {
+        print("Pedometer error: $error");
+      });
+    } catch (e) {
+      print("Error al inicializar pedómetro: $e");
+    }
+  }
+
+  Future<bool> checkOrRequestBodySensors() async {
+    return await Permission.sensors.request().isGranted;
+  }
+
+  void _checkPermissions() async {
+    // FOR ANDROID
+    if (Platform.isAndroid) {
+      var status = await Permission.activityRecognition.request();
+
+      bool status2 = await checkOrRequestBodySensors();
+
+      if (status.isGranted) {
+        _initPedometer();
+      } else {
+        print("PERMISSION DENIED");
+      }
+    }
+    // FOR iOS
+    else if (Platform.isIOS) {
+      var status = await Permission.sensors.request();
+      if (status.isGranted) {
+        _initPedometer();
+      } else {
+        print("PERMISSION DENIED ON iOS");
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _checkPermissions();
     CargarUltimaActividad();
     CargarIdAmigo(); 
     empezarContador();
@@ -240,9 +303,6 @@ class _ActividadState extends State<Actividad> {
           if (timer.tick % 60 == 0) {
             minutos++;
           }
-          int pasitos = 1 + random.nextInt(3);
-          pasos += pasitos;
-          kilometros = pasos / PASOS_POR_KM;
         });
       }
     });
