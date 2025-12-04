@@ -48,6 +48,7 @@ class _pag_autenticacionState extends State<pag_autenticacion> {
         "peso": null,
         "altura": null,
         "amigos": [],
+        "foto": "",
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
