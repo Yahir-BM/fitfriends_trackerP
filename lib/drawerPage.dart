@@ -25,7 +25,9 @@ class drawerPage extends StatefulWidget {
 class _drawerPageState extends State<drawerPage> {
   //variables
   String nombreUsuario = "";
+  String? fotoAvatar;
   int _index = 0; //cambio de páginas
+  static  String assetsPath = 'assets/avatares/';
 
   @override
   void initState() {
@@ -36,26 +38,32 @@ class _drawerPageState extends State<drawerPage> {
   Future<void> cargarUsuario() async {
     try {
       final uid = FirebaseAuth.instance.currentUser!.uid;
-
       final doc = await FirebaseFirestore.instance.collection("users").doc(uid).get();
 
       if (doc.exists) {
         setState(() {
-          nombreUsuario = doc["nombre"];
+          nombreUsuario = doc["nombre"] ?? "Usuario";
+          fotoAvatar = doc["foto"];
         });
       } else {
         setState(() {
           nombreUsuario = "Usuario";
+          fotoAvatar = null;
         });
       }
     } catch (e) {
       print("Error cargando usuario: $e");
-      setState(() => nombreUsuario = "Usuario");
+      setState(() {
+        nombreUsuario = "Usuario";
+        fotoAvatar = null;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final bool tieneAvatar = (fotoAvatar != null && fotoAvatar!.isNotEmpty);
+
     return Scaffold(
       appBar: AppBar(
         title: Text("FitFriend", style: TextStyle(color: Colors.white),),
@@ -74,7 +82,18 @@ class _drawerPageState extends State<drawerPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundColor: Colors.white70,
+                      backgroundImage: tieneAvatar
+                          ? AssetImage(assetsPath + fotoAvatar!) as ImageProvider
+                          : null,
+                      child: !tieneAvatar
+                          ? const Icon(Icons.person, size: 40, color: Colors.blueAccent)
+                          : null,
+                    ),
 
+                    const SizedBox(height: 10,),
                     SizedBox(height: 10,),
                     Text(nombreUsuario.isEmpty ? "Cargando..." : nombreUsuario, style: TextStyle(color: Colors.white, fontSize: 30),)
                   ],
@@ -183,7 +202,7 @@ class _drawerPageState extends State<drawerPage> {
               //AQUI VA EL PINCHE MAPA
               SizedBox(height: 70,),
 
-              //----z-------------- ACTIVIDADES DE AMIGOS ------------
+              //----------------- ACTIVIDADES DE AMIGOS ------------
 
               Text(
                 "Últimas actividades de amigos",

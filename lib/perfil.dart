@@ -44,8 +44,7 @@ class Perfil extends StatelessWidget {
           final int peso = data["peso"] ?? 0;
           final int altura = data["altura"] ?? 0;
 
-          // --- LECTURA DEL AVATAR ---
-          // 'foto' ahora contiene el nombre del archivo (ej: 'oso.png')
+
           final String? avatarName = data["foto"];
           final bool tieneAvatar = (avatarName != null && avatarName.isNotEmpty);
           // --------------------------
@@ -58,17 +57,15 @@ class Perfil extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                // ---------------------------------------------------
-                // MODIFICACIÓN: Mostrar el avatar o el ícono por defecto
-                // ---------------------------------------------------
+
                 CircleAvatar(
                   radius: 55,
                   backgroundColor: Colors.blueAccent,
-                  // Si tiene avatarName, construye la ruta local y usa AssetImage
+
                   backgroundImage: tieneAvatar
-                      ? AssetImage(assetsPath + avatarName!) as ImageProvider // <--- USANDO EL ASSET LOCAL
+                      ? AssetImage(assetsPath + avatarName!) as ImageProvider
                       : null,
-                  // Muestra el ícono si NO tiene foto (o el campo 'foto' es nulo/vacío)
+
                   child: !tieneAvatar
                       ? const Icon(Icons.person, size: 60, color: Colors.white)
                       : null,
@@ -77,7 +74,7 @@ class Perfil extends StatelessWidget {
 
                 const SizedBox(height: 20),
 
-                // CARD DE PERFIL
+
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
@@ -126,7 +123,7 @@ class Perfil extends StatelessWidget {
 
                 const SizedBox(height: 20,),
 
-                // BOTÓN EDITAR PERFIL
+
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
