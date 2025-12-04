@@ -8,6 +8,9 @@
 import 'dart:async';
 import 'package:fitfriends_tracker/drawerPage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_location_marker/flutter_map_location_marker.dart';
+import 'package:latlong2/latlong.dart';
 
 class Actividad extends StatefulWidget {
   const Actividad({super.key});
@@ -23,6 +26,34 @@ class _ActividadState extends State<Actividad> {
 
   String tiempoTotal = "00:35:20"; // Ejemplo
   String kilometros = "4.2 km";   // Ejemplo
+
+  final MapController _mapController = MapController();
+  Widget getMap(){
+    return FlutterMap(
+        mapController: _mapController,
+        options: const MapOptions(
+          initialCenter: LatLng(0, 0),
+          initialZoom: 2,
+          minZoom: 0,
+          maxZoom: 100,
+        ),
+        children: [
+          TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',),
+          CurrentLocationLayer(
+            style: const LocationMarkerStyle(
+              marker: DefaultLocationMarker(
+                child: Icon(
+                  Icons.location_pin,
+                  color: Colors.white,
+                ),
+              ),
+              markerSize: Size(35, 35),
+              markerDirection: MarkerDirection.heading,
+            ),
+          )
+        ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,10 +96,7 @@ class _ActividadState extends State<Actividad> {
               border: Border.all(color: Colors.black12),
             ),
             child: Center(
-              child: Text(
-                "Aquí irá el mapa ",
-                style: TextStyle(fontSize: 18, color: Colors.black54),
-              ),
+              child: getMap(),
             ),
           ),
 
