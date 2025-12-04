@@ -3,17 +3,26 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'logins.dart';
 import 'editarPerfil.dart';
+import 'drawerPage.dart';
+import 'package:provider/provider.dart';
+import 'modeloDatosCompartidos.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  print("Firebase inicializado correctamente"); //prueba
+
+  runApp(
+    ChangeNotifierProvider<ActivityManager>.value(
+      value: activityManager, // Usamos la instancia global que ya definiste
+      child: MaterialApp(
+        home: const drawerPage(),
+        debugShowCheckedModeBanner: false,
+      ),
+    ),
   );
-
-  print("Firebase inicializado correctamente");  //prueba
-
-  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -24,9 +33,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: pag_autenticacion(),
-      routes: {
-        "/editarPerfil": (context) => Editarperfil(),
-      },
+      routes: {"/editarPerfil": (context) => Editarperfil()},
     );
   }
 }

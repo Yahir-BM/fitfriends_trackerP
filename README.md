@@ -1,6 +1,6 @@
-# fitfriends_tracker
+# fit_friend_tracker_proyecto_final
 
-A new Flutter project.
+el proyecto final pa DAM, una app para que veas los pasos de tus amigos
 
 ## Getting Started
 
