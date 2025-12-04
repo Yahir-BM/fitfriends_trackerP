@@ -3,7 +3,7 @@
 //te toca yahir, aqui viene la información  del usuario para que pueda usar la app
 //aqui mismo en la parte de abajo hay un ranking semanal
 
-import 'package:fitfriends_tracker/config.dart';
+
 import 'package:fitfriends_tracker/friends.dart';
 import 'package:fitfriends_tracker/historial.dart';
 import 'package:fitfriends_tracker/iniciarActividad.dart';
@@ -131,7 +131,7 @@ class _drawerPageState extends State<drawerPage> {
             _itemDrawer(1,Icons.face, "Amigos"),
             _itemDrawer(2,Icons.message, "Notificaciones"),
             _itemDrawer(3,Icons.person, "Perfil"),
-            _itemDrawer(4,Icons.edit_note_rounded, "Configuración"),
+
 
             Divider(),
             MaterialButton(
@@ -165,7 +165,7 @@ class _drawerPageState extends State<drawerPage> {
       case 1: return Amigos();
       case 2: return Notifs();
       case 3: return Perfil();
-      case 4: return Config();
+
     }
   }
 Widget HomePageContent(){

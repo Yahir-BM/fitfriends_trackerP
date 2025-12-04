@@ -11,9 +11,9 @@ class Amigos extends StatefulWidget {
 }
 
 class _AmigosState extends State<Amigos> {
-  // --- CONFIGURACIÓN DE AVATARES LOCALES (DEBE COINCIDIR CON Editarperfil) ---
+
   static const String assetsPath = 'assets/avatares/';
-  // --------------------------------------------------------------------------
+
 
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final TextEditingController usuarioController = TextEditingController();
@@ -25,10 +25,11 @@ class _AmigosState extends State<Amigos> {
     super.dispose();
   }
 
-  // Metodo para agregar amigo
+
   Future<void> agregarAmigo(String nombreAmigo, String uidActual) async {
+
     try {
-      // Busca el id de otro usuario a partir del nombre
+
       QuerySnapshot query = await firestore
           .collection('users')
           .where('nombre', isEqualTo: nombreAmigo)
@@ -44,7 +45,7 @@ class _AmigosState extends State<Amigos> {
         throw Exception('No puedes agregarte a ti mismo');
       }
 
-      // Comprobacion para saber si el amiguito ya existe
+
       DocumentSnapshot usuarioDoc = await firestore
           .collection('users')
           .doc(uidActual)
@@ -58,7 +59,7 @@ class _AmigosState extends State<Amigos> {
         }
       }
 
-      // Agregar a el id al campo amigos
+
       await firestore.collection('users').doc(uidActual).update({
         'amigos': FieldValue.arrayUnion([idAmigo])
       });
@@ -68,14 +69,13 @@ class _AmigosState extends State<Amigos> {
     }
   }
 
-  // Metodo para eliminar a un amigo
-  Future<void> _eliminarAmigo(String idAmigo) async {
-    if (!mounted) return;
-    final user = FirebaseAuth.instance.currentUser;
 
-    if (user == null) {
-      return;
-    }
+  Future<void> _eliminarAmigo(String idAmigo) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+
+    if (!mounted) return;
     setState(() => carganding = true);
 
     try {
@@ -83,25 +83,28 @@ class _AmigosState extends State<Amigos> {
         'amigos': FieldValue.arrayRemove([idAmigo])
       });
 
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Ya no eres amigo de esta persona :(' )),
         );
       }
     } catch (e) {
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error al eliminar: ${e.toString()}')),
         );
       }
     } finally {
+
       if (mounted) {
         setState(() => carganding = false);
       }
     }
   }
 
-  // Metodo para actualizar lista in real time
+
   Stream<List<Map<String, dynamic>>> obtenerAmigos(String uidActual) {
     if (uidActual.isEmpty) return Stream.value([]);
 
@@ -119,8 +122,7 @@ class _AmigosState extends State<Amigos> {
 
       if (amigosIds.isEmpty) return [];
 
-      // Aquí podrías tener problemas de limitación si hay más de 10 amigos,
-      // pero mantenemos el código como está para no romper la lógica existente.
+
       final idsToQuery = amigosIds.length > 10 ? amigosIds.sublist(0, 10) : amigosIds;
 
       QuerySnapshot amigosQuery = await firestore
@@ -134,14 +136,16 @@ class _AmigosState extends State<Amigos> {
           'id': doc.id,
           'nombre': data['nombre'],
           'email': data['email'],
-          // Cambiamos 'fotoPerfil' por 'foto' para coincidir con el campo de avatar local
+
           'foto': data['foto'] ?? null,
         };
       }).toList();
     });
   }
 
+
   Future<void> AmigoAgregado(String nombre) async {
+
     if (!mounted) return;
 
     setState(() => carganding = true);
@@ -150,12 +154,15 @@ class _AmigosState extends State<Amigos> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception('No autenticado');
 
+
       await agregarAmigo(nombre, user.uid);
+
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Amigo agregado exitosamente :)')),
         );
+        usuarioController.clear();
       }
 
     } catch (e) {
@@ -173,8 +180,9 @@ class _AmigosState extends State<Amigos> {
     if (!mounted) return;
 
     showDialog(
+
       context: context,
-      builder: (_) => ClipRRect(
+      builder: (BuildContext dialogContext) => ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 7, sigmaY: 7),
@@ -196,14 +204,14 @@ class _AmigosState extends State<Amigos> {
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.pop(dialogContext),
                 child: const Text('Cancelar', style: TextStyle(color: Colors.red)),
               ),
               ElevatedButton(
                 onPressed: () async {
                   final nombre = usuarioController.text.trim();
                   if (nombre.isEmpty) return;
-                  Navigator.pop(context);
+                  Navigator.pop(dialogContext);
                   await AmigoAgregado(nombre);
                 },
                 style: ElevatedButton.styleFrom(
@@ -314,11 +322,9 @@ class _AmigosState extends State<Amigos> {
                       radius: 28,
                       backgroundColor: Colors.white.withOpacity(0.3),
 
-                      // ------------------------------------------------------------------
-                      // MODIFICACIÓN: Mostrar AssetImage si tiene el nombre del avatar
-                      // ------------------------------------------------------------------
+
                       backgroundImage: tieneFotoLocal
-                          ? AssetImage(assetsPath + foto!) as ImageProvider // <--- RUTA LOCAL
+                          ? AssetImage(assetsPath + foto!) as ImageProvider
                           : null,
 
                       child: !tieneFotoLocal
@@ -327,7 +333,6 @@ class _AmigosState extends State<Amigos> {
                         style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
                       )
                           : null,
-                      // ------------------------------------------------------------------
                     ),
 
                     title: Text(nombreAmigo,
