@@ -12,6 +12,7 @@ import 'package:fitfriends_tracker/perfil.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'logins.dart';
 
 
 class drawerPage extends StatefulWidget {
@@ -73,14 +74,14 @@ class _drawerPageState extends State<drawerPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    //deberia ser CircleAvatar
+
                     SizedBox(height: 10,),
                     Text(nombreUsuario.isEmpty ? "Cargando..." : nombreUsuario, style: TextStyle(color: Colors.white, fontSize: 30),)
                   ],
                 )
             ),
             SizedBox(height: 50,),
-            //aqui vamos a poner los items
+
             _itemDrawer(0,Icons.home, "Home"),
             _itemDrawer(1,Icons.face, "Amigos"),
             _itemDrawer(2,Icons.message, "Notificaciones"),
@@ -92,6 +93,13 @@ class _drawerPageState extends State<drawerPage> {
               onPressed: () async {
                 await FirebaseAuth.instance.signOut();
                 Navigator.popUntil(context, (route) => route.isFirst);
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>  pag_autenticacion(),
+                  ),
+                      (Route<dynamic> route) => false,
+                );
               },
               child: Text("Cerrar Sesión"),
             )
@@ -101,10 +109,10 @@ class _drawerPageState extends State<drawerPage> {
     );
   }
 
-  //Nos ayuda a cambiar las páginas principales
+
   Widget? contenido() {
     switch(_index){
-      //el primero es la página local, el homePage
+
       case 0: return Scaffold(
         backgroundColor: Colors.white60,
         body: SingleChildScrollView(
@@ -201,7 +209,7 @@ class _drawerPageState extends State<drawerPage> {
                 children: [
                   Card(
                     child: ListTile(
-                      leading: Icon(Icons.face), //funciona como la foto de mientras
+                      leading: Icon(Icons.face),
                       title: Text("Eddilson recorrió 7 kilómetros"),
                       subtitle: Text("Hace 60 minutos"),
                     ),

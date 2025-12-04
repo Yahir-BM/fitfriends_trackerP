@@ -5,12 +5,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Perfil extends StatelessWidget {
   const Perfil({super.key});
 
+
+  static  String assetsPath = 'assets/avatares/';
+  // --------------------------------------------------------------------------
+
   @override
   Widget build(BuildContext context) {
     final User? user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      return Scaffold(
+      return const Scaffold(
         body: Center(child: Text("Usuario no autenticado")),
       );
     }
@@ -18,7 +22,7 @@ class Perfil extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.deepPurple.shade50,
       appBar: AppBar(
-        title: Text("Perfil"),
+        title: const Text("Perfil"),
         centerTitle: true,
       ),
 
@@ -26,11 +30,11 @@ class Perfil extends StatelessWidget {
         stream: FirebaseFirestore.instance.collection("users").doc(user.uid).snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (!snapshot.data!.exists) {
-            return Center(child: Text("No se encontró información del usuario"));
+            return const Center(child: Text("No se encontró información del usuario"));
           }
 
           final data = snapshot.data!.data() as Map<String, dynamic>;
@@ -40,26 +44,42 @@ class Perfil extends StatelessWidget {
           final int peso = data["peso"] ?? 0;
           final int altura = data["altura"] ?? 0;
 
+          // --- LECTURA DEL AVATAR ---
+          // 'foto' ahora contiene el nombre del archivo (ej: 'oso.png')
+          final String? avatarName = data["foto"];
+          final bool tieneAvatar = (avatarName != null && avatarName.isNotEmpty);
+          // --------------------------
+
           //Fecha de registro
           DateTime fecha = (data["fechaRegistro"] as Timestamp).toDate();
           String fechaFormateada = "${fecha.day.toString().padLeft(2, '0')}/${fecha.month.toString().padLeft(2, '0')}/${(fecha.year % 100).toString().padLeft(2, '0')}";
 
           return SingleChildScrollView(
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                // Foto (default temporal)
+                // ---------------------------------------------------
+                // MODIFICACIÓN: Mostrar el avatar o el ícono por defecto
+                // ---------------------------------------------------
                 CircleAvatar(
                   radius: 55,
                   backgroundColor: Colors.blueAccent,
-                  child: Icon(Icons.person, size: 60, color: Colors.white),
+                  // Si tiene avatarName, construye la ruta local y usa AssetImage
+                  backgroundImage: tieneAvatar
+                      ? AssetImage(assetsPath + avatarName!) as ImageProvider // <--- USANDO EL ASSET LOCAL
+                      : null,
+                  // Muestra el ícono si NO tiene foto (o el campo 'foto' es nulo/vacío)
+                  child: !tieneAvatar
+                      ? const Icon(Icons.person, size: 60, color: Colors.white)
+                      : null,
                 ),
+                // ---------------------------------------------------
 
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
 
                 // CARD DE PERFIL
                 Container(
-                  padding: EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [Colors.blue.shade400, Colors.cyanAccent],
@@ -67,7 +87,7 @@ class Perfil extends StatelessWidget {
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(
                         color: Colors.black26,
                         blurRadius: 8,
@@ -78,98 +98,40 @@ class Perfil extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Nombre:", style: TextStyle(fontSize: 15, color: Colors.white70)),
-                      Text(nombre, style: TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold)),
-                      SizedBox(height: 15),
+                      const Text("Nombre:", style: TextStyle(fontSize: 15, color: Colors.white70)),
+                      Text(nombre, style: const TextStyle(fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 15),
 
-                      Text("Email:", style: TextStyle(fontSize: 15, color: Colors.white70)),
-                      Text(email, style: TextStyle(fontSize: 18, color: Colors.white)),
-                      SizedBox(height: 15),
+                      const Text("Email:", style: TextStyle(fontSize: 15, color: Colors.white70)),
+                      Text(email, style: const TextStyle(fontSize: 18, color: Colors.white)),
+                      const SizedBox(height: 15),
 
-                      Text("Peso:", style: TextStyle(fontSize: 15, color: Colors.white70)),
-                      Text("$peso kg", style: TextStyle(fontSize: 18, color: Colors.white)),
-                      SizedBox(height: 15),
+                      const Text("Peso:", style: TextStyle(fontSize: 15, color: Colors.white70)),
+                      Text("$peso kg", style: const TextStyle(fontSize: 18, color: Colors.white)),
+                      const SizedBox(height: 15),
 
-                      Text("Altura:", style: TextStyle(fontSize: 15, color: Colors.white70)),
-                      Text("$altura cm", style: TextStyle(fontSize: 18, color: Colors.white)),
-                      SizedBox(height: 15),
+                      const Text("Altura:", style: TextStyle(fontSize: 15, color: Colors.white70)),
+                      Text("$altura cm", style: const TextStyle(fontSize: 18, color: Colors.white)),
+                      const SizedBox(height: 15),
 
-                      Text("Fecha de registro:", style: TextStyle(fontSize: 15, color: Colors.white70)),
-                      Text(fechaFormateada, style: TextStyle(fontSize: 18, color: Colors.white)),
+                      const Text("Fecha de registro:", style: TextStyle(fontSize: 15, color: Colors.white70)),
+                      Text(fechaFormateada, style: const TextStyle(fontSize: 18, color: Colors.white)),
 
                     ],
                   ),
                 ),
 
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
 
-                Text("Amigos:", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),),
 
-                SizedBox(height: 10,),
-
-                Container(
-                  padding: EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(15),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 8,
-                        offset: Offset(0, 3),
-                      )
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (data["amigos"] == null || data["amigos"].isEmpty)
-                        Center(
-                          child: Text("Aun no tienes amigos agregados", style: TextStyle(fontSize: 16, color: Colors.grey),),
-                        )
-                      else
-                        Column(
-                          children: List.generate(
-                              data["amigos"].length,
-                              (index) {
-                                String uidAmigo = data["amigos"][index];
-
-                                return FutureBuilder(
-                                    future: FirebaseFirestore.instance.collection("users").doc(uidAmigo).get(),
-                                    builder: (context, snapshot) {
-                                      if (!snapshot.hasData) {
-                                        return ListTile(
-                                          leading: CircleAvatar(backgroundColor: Colors.grey,),
-                                          title: Text("Cargando...."),
-                                        );
-                                      }
-
-                                      var amigoData = snapshot.data!.data();
-                                      String nombreAmigo = amigoData?["nombre"] ?? "Usuario sin nombre";
-
-                                      return ListTile(
-                                        leading: CircleAvatar(
-                                          backgroundColor: Colors.blueAccent,
-                                          child: Icon(Icons.person, color: Colors.white,),
-                                        ),
-                                        title: Text(nombreAmigo, style: TextStyle(fontSize: 18),),
-                                      );
-                                    },
-                                );
-                              },
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 20,),
+                const SizedBox(height: 20,),
 
                 // BOTÓN EDITAR PERFIL
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.cyanAccent, Colors.blueAccent.shade200],
+                      colors: [Colors.cyanAccent, Colors.blueAccent.shade200!],
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                     ),
@@ -179,7 +141,7 @@ class Perfil extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
                       shadowColor: Colors.transparent,
-                      padding: EdgeInsets.symmetric(vertical: 15),
+                      padding: const EdgeInsets.symmetric(vertical: 15),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15),
                       ),
@@ -187,7 +149,7 @@ class Perfil extends StatelessWidget {
                     onPressed: () {
                       Navigator.pushNamed(context, "/editarPerfil");
                     },
-                    child: Text("Editar Perfil", style: TextStyle(fontSize: 18, color: Colors.white),
+                    child: const Text("Editar Perfil", style: TextStyle(fontSize: 18, color: Colors.white),
                     ),
                   ),
                 ),
