@@ -27,30 +27,74 @@ class _ActividadState extends State<Actividad> {
   String tiempoTotal = "00:35:20"; // Ejemplo
   String kilometros = "4.2 km";   // Ejemplo
 
+  //datos de ejemplo
+  final List<Map<String, dynamic>> lugaresTepic = [
+    {
+      "nombre": "Yo",
+      "lat": 21.5095,
+      "lng": -104.8959,
+    },
+    {
+      "nombre": "Yahir",
+      "lat": 21.5008,
+      "lng": -104.8970,
+    },
+    {
+      "nombre": "Felipe",
+      "lat": 21.4937,
+      "lng": -104.8844,
+    },
+    {
+      "nombre": "Paulina",
+      "lat": 21.4754,
+      "lng": -104.8675,
+    },
+  ];
+
+  Column _getMarker(String nombre){
+      return Column(
+      children: [
+        Icon(
+          Icons.location_on,
+          color: (nombre == "Yo" ? Colors.blue : Colors.red),
+          size: 35,
+        ),
+        Text(
+          nombre,
+          style: TextStyle(
+            fontSize: 10,
+            color: Colors.black,
+            backgroundColor: Colors.white,
+          ),
+        )
+      ],
+    );
+  }
+
+  List<Marker> _crearMarkers() {
+    return lugaresTepic.map((lugar) {
+      return Marker(
+        child: _getMarker(lugar["nombre"]),
+        width: 80,
+        height: 80,
+        point: LatLng(lugar["lat"], lugar["lng"]),
+      );
+    }).toList();
+  }
+
   final MapController _mapController = MapController();
   Widget getMap(){
     return FlutterMap(
         mapController: _mapController,
         options: const MapOptions(
-          initialCenter: LatLng(0, 0),
-          initialZoom: 2,
+          initialCenter: LatLng(21.5008, -104.8970),
+          initialZoom: 13,
           minZoom: 0,
           maxZoom: 100,
         ),
         children: [
           TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',),
-          CurrentLocationLayer(
-            style: const LocationMarkerStyle(
-              marker: DefaultLocationMarker(
-                child: Icon(
-                  Icons.location_pin,
-                  color: Colors.white,
-                ),
-              ),
-              markerSize: Size(35, 35),
-              markerDirection: MarkerDirection.heading,
-            ),
-          )
+          MarkerLayer(markers: _crearMarkers()),
         ],
     );
   }
@@ -152,7 +196,6 @@ class _ActividadState extends State<Actividad> {
     );
   }
 
-  //METODOS A LA VERGA
   @override
   void initState() {
     super.initState();
