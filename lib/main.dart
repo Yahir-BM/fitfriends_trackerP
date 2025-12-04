@@ -18,7 +18,7 @@ void main() async {
     ChangeNotifierProvider<ActivityManager>.value(
       value: activityManager, // Usamos la instancia global que ya definiste
       child: MaterialApp(
-        home: const drawerPage(),
+        home: MyApp(),
         debugShowCheckedModeBanner: false,
       ),
     ),

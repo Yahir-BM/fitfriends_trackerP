@@ -86,13 +86,6 @@ class _drawerPageState extends State<drawerPage> {
     }
   }
 
-  // Esto es para simular tus otras páginas
-  Widget Amigos() => const Center(child: Text("Página de Amigos"));
-  Widget Notifs() => const Center(child: Text("Página de Notificaciones"));
-  Widget Perfil() => const Center(child: Text("Página de Perfil"));
-  Widget Config() => const Center(child: Text("Página de Configuración"));
-
-
   @override
   Widget build(BuildContext context) {
     final bool tieneAvatar = (fotoAvatar != null && fotoAvatar!.isNotEmpty);
