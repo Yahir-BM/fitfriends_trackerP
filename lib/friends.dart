@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -10,19 +11,15 @@ class Amigos extends StatefulWidget {
 }
 
 class _AmigosState extends State<Amigos> {
-
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final TextEditingController usuarioController = TextEditingController();
   bool carganding = false;
-
-
 
   @override
   void dispose() {
     usuarioController.dispose();
     super.dispose();
   }
-
 
   // metodo para agregar amigo
   Future<void> agregarAmigo(String nombreAmigo, String uidActual) async {
@@ -39,7 +36,6 @@ class _AmigosState extends State<Amigos> {
       }
 
       String idAmigo = query.docs.first.id;
-
       if (idAmigo == uidActual) {
         throw Exception('No puedes agregarte a ti mismo'); //para que no te agregues a ti mismo
       }
@@ -79,13 +75,13 @@ class _AmigosState extends State<Amigos> {
     setState(() => carganding = true);
 
     try {
-      await firestore.collection('users').doc(user.uid).update({ 
+      await firestore.collection('users').doc(user.uid).update({
         'amigos': FieldValue.arrayRemove([idAmigo]) // con FieldValue.arrayRemove se quita el id del amigo
       });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ya no eres amigo de esta persona :(' )),
+          SnackBar(content: Text('Ya no eres amigo de esta persona :(' )),
         );
       }
     } catch (e) {
@@ -101,12 +97,9 @@ class _AmigosState extends State<Amigos> {
     }
   }
 
-
-  // Metodo para actualizar la lista in real time cuando eliminas o agregas un amigo
+  // Metodo para actualizar lista in real time
   Stream<List<Map<String, dynamic>>> obtenerAmigos(String uidActual) {
-    if (uidActual.isEmpty) {
-      return Stream.value([]);
-    }
+    if (uidActual.isEmpty) return Stream.value([]);
 
     return firestore
         .collection('users')
@@ -118,14 +111,11 @@ class _AmigosState extends State<Amigos> {
 
       final amigosData = usuarioDoc.get('amigos');
       List<String> amigosIds = [];
-      if (amigosData is List) {
-        amigosIds = amigosData.map((id) => id.toString()).toList();
-      }
+      if (amigosData is List) amigosIds = amigosData.map((id) => id.toString()).toList();
 
       if (amigosIds.isEmpty) return [];
 
-      // Segun el un pajarito el 'whereIn' tiene un limite por restriciones del firebase
-      // para mostrar solo 10 amigos (tu que opinas felipe?)
+      // Limitamos a 10 amigos (por whereIn)
       final idsToQuery = amigosIds.length > 10 ? amigosIds.sublist(0, 10) : amigosIds;
 
       QuerySnapshot amigosQuery = await firestore
@@ -139,12 +129,11 @@ class _AmigosState extends State<Amigos> {
           'id': doc.id,
           'nombre': data['nombre'],
           'email': data['email'],
+          'fotoPerfil': data['fotoPerfil'] ?? null, // 🔥 foto agregada
         };
       }).toList();
     });
   }
-
-
 
   Future<void> AmigoAgregado(String nombre) async {
     if (!mounted) return;
@@ -159,7 +148,7 @@ class _AmigosState extends State<Amigos> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Amigo agregado exitosamente :)')),
+          SnackBar(content: Text('Amigo agregado exitosamente :)')),
         );
       }
 
@@ -170,9 +159,7 @@ class _AmigosState extends State<Amigos> {
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => carganding = false);
-      }
+      if (mounted) setState(() => carganding = false);
     }
   }
 
@@ -181,137 +168,174 @@ class _AmigosState extends State<Amigos> {
 
     showDialog(
       context: context,
-      builder: (context) {
-        usuarioController.clear();
-        return AlertDialog(
-          title:  Text('Agrega un Amigo'),
-          content: TextField(
-            controller: usuarioController,
-            decoration:  InputDecoration(
-              labelText: 'Nombre amigo',
-              border: OutlineInputBorder(),
+      builder: (_) => ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 7, sigmaY: 7),
+          child: AlertDialog(
+            backgroundColor: Colors.white38,
+            title: Text('Agrega un Amigo', style: TextStyle(color: Colors.white)),
+            content: TextField(
+              controller: usuarioController,
+              style: TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                labelText: 'Nombre amigo',
+                labelStyle: TextStyle(color: Colors.white70),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+                filled: true,
+                fillColor: Colors.white38,
+              ),
+              autofocus: true,
+              textCapitalization: TextCapitalization.words,
             ),
-            autofocus: true,
-            textCapitalization: TextCapitalization.words,
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Cancelar', style: TextStyle(color: Colors.red)),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final nombre = usuarioController.text.trim();
+                  if (nombre.isEmpty) return;
+                  Navigator.pop(context);
+                  await AmigoAgregado(nombre);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.lightBlue,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: Text('Agregar'),
+              )
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () { Navigator.pop(context); },
-              child:  Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final nombre = usuarioController.text.trim();
-                if (nombre.isEmpty) return;
-
-                Navigator.pop(context);
-                await AmigoAgregado(nombre);
-              },
-              child:  Text('Agregar'),
-            ),
-          ],
-        );
-      },
+        ),
+      ),
     );
   }
 
-  // Dialogo para confirmar si se elimina un amigo
+  // Dialogo para confirmar si elimina un amigo
   void confirmarEliminarAmigo(BuildContext context, String nombreAmigo, String idAmigo) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title:  Text('Confirmar Eliminación'),
-          content: Text('¿Seguro que quieres eliminar a: $nombreAmigo de tu lista de amigos? :('),
-          actions: <Widget>[
-            TextButton(
-              child:  Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
-              onPressed: () {
-                Navigator.of(context).pop();
-                _eliminarAmigo(idAmigo);
-              },
-            ),
-          ],
-        );
-      },
+      builder: (_) => AlertDialog(
+        title: Text('Confirmar Eliminación'),
+        content: Text('¿Seguro que quieres eliminar a: $nombreAmigo de tu lista de amigos? :('),
+        actions: [
+          TextButton(
+            child: Text('Cancelar'),
+            onPressed: () => Navigator.pop(context),
+          ),
+          TextButton(
+            child: Text('Eliminar', style: TextStyle(color: Colors.red)),
+            onPressed: () {
+              Navigator.pop(context);
+              _eliminarAmigo(idAmigo);
+            },
+          ),
+        ],
+      ),
     );
   }
 
-
-
   @override
-
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser!;
 
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Mis Amigos')),
-
+      backgroundColor: Colors.deepPurple.shade50,
+      appBar: AppBar(
+        backgroundColor: Colors.deepPurple,
+        elevation: 0,
+        title: Text('Mis Amigos ', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white70)),
+      ),
 
       body: StreamBuilder<List<Map<String, dynamic>>>(
         stream: obtenerAmigos(user.uid),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator(color: Colors.white));
           }
+          if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}', style: TextStyle(color: Colors.red)));
 
           final amigos = snapshot.data ?? [];
 
           if (amigos.isEmpty) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.group, size: 80, color: Colors.grey),
-                  SizedBox(height: 20),
-                  Text('Sin amigos...'),
-                  Text('Agrega amigos usando el botón +'),
-                ],
-              ),
+              child: Text("Sin amigos aún 😢\nAgrega algunos con el botón +",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white70, fontSize: 18)),
             );
           }
 
           // Mostrar la lista de amigos
           return ListView.builder(
+            padding: EdgeInsets.all(12),
             itemCount: amigos.length,
             itemBuilder: (context, index) {
+
               final amigo = amigos[index];
               final String idAmigo = amigo['id'];
               final String nombreAmigo = amigo['nombre'];
+              final String? foto = amigo["fotoPerfil"];
 
-              return ListTile(
-                leading: CircleAvatar(
-                  child: Text(nombreAmigo.isNotEmpty ? nombreAmigo[0].toUpperCase() : '?'),
-                ),
-                title: Text(nombreAmigo),
-                subtitle: Text(amigo['email']),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.chat_bubble_outline, color: Colors.blueGrey),
-                      tooltip: 'Iniciar Chat',
-                      onPressed: () {},
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: 6),
+                child: Container(
+
+                  //Estilo chido
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.deepPurple, Colors.blueAccent],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      tooltip: 'Eliminar amigo',
-                      onPressed: carganding
-                          ? null
-                          : () { confirmarEliminarAmigo(context, nombreAmigo, idAmigo);}
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.35),
+                        blurRadius: 6,
+                        offset: Offset(0, 4),
+                      )
+                    ],
+                  ),
+                  child: ListTile(
+                    contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+
+                    leading: CircleAvatar(
+                      radius: 28,
+                      backgroundColor: Colors.white.withOpacity(0.3),
+                      backgroundImage: (foto != null && foto.isNotEmpty)
+                          ? NetworkImage(foto)
+                          : null,
+                      child: (foto == null || foto.isEmpty)
+                          ? Text(
+                        nombreAmigo[0].toUpperCase(),
+                        style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                      )
+                          : null,
                     ),
-                  ],
+
+                    title: Text(nombreAmigo,
+                        style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600)),
+                    subtitle: Text(amigo['email'], style: TextStyle(color: Colors.white70)),
+
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.chat_bubble_outline, color: Colors.white),
+                          tooltip: 'Iniciar Chat',
+                          onPressed: () {},
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete, color: Colors.redAccent),
+                          tooltip: 'Eliminar amigo',
+                          onPressed: carganding ? null : () => confirmarEliminarAmigo(context, nombreAmigo, idAmigo),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               );
             },
@@ -321,16 +345,10 @@ class _AmigosState extends State<Amigos> {
 
       floatingActionButton: FloatingActionButton(
         onPressed: carganding ? null : DialogoAgregarAmigo,
+        backgroundColor: Colors.blueAccent,
         child: carganding
-            ? const Center(child: SizedBox(
-          width: 24,
-          height: 24,
-          child: CircularProgressIndicator(
-            color: Colors.white,
-            strokeWidth: 3,
-          ),
-        ))
-            : const Icon(Icons.add),
+            ? CircularProgressIndicator(color: Colors.white)
+            : Icon(Icons.person_add_alt_1),
       ),
     );
   }

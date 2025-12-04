@@ -16,6 +16,7 @@ class Perfil extends StatelessWidget {
     }
 
     return Scaffold(
+      backgroundColor: Colors.deepPurple.shade50,
       appBar: AppBar(
         title: Text("Perfil"),
         centerTitle: true,
@@ -130,16 +131,34 @@ class Perfil extends StatelessWidget {
                         Column(
                           children: List.generate(
                               data["amigos"].length,
-                              (index) => ListTile(
-                                leading: CircleAvatar(
-                                  backgroundColor: Colors.blueAccent,
-                                  child: Icon(Icons.person, color: Colors.white,),
-                                ),
-                                title: Text(data["amigos"][index], style: TextStyle(fontSize: 18),
-                                ),
-                              )
-                          )
-                        )
+                              (index) {
+                                String uidAmigo = data["amigos"][index];
+
+                                return FutureBuilder(
+                                    future: FirebaseFirestore.instance.collection("users").doc(uidAmigo).get(),
+                                    builder: (context, snapshot) {
+                                      if (!snapshot.hasData) {
+                                        return ListTile(
+                                          leading: CircleAvatar(backgroundColor: Colors.grey,),
+                                          title: Text("Cargando...."),
+                                        );
+                                      }
+
+                                      var amigoData = snapshot.data!.data();
+                                      String nombreAmigo = amigoData?["nombre"] ?? "Usuario sin nombre";
+
+                                      return ListTile(
+                                        leading: CircleAvatar(
+                                          backgroundColor: Colors.blueAccent,
+                                          child: Icon(Icons.person, color: Colors.white,),
+                                        ),
+                                        title: Text(nombreAmigo, style: TextStyle(fontSize: 18),),
+                                      );
+                                    },
+                                );
+                              },
+                          ),
+                        ),
                     ],
                   ),
                 ),

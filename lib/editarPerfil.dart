@@ -1,6 +1,10 @@
+import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class Editarperfil extends StatefulWidget {
   const Editarperfil({super.key});
@@ -17,7 +21,9 @@ class _EditarperfilState extends State<Editarperfil> {
   final TextEditingController pesoCont = TextEditingController();
   final TextEditingController alturaCont = TextEditingController();
 
+  String? fotoURL;
   bool cargando = true;
+  bool subiendoFoto = false;
 
   @override
   void initState() {
@@ -27,19 +33,46 @@ class _EditarperfilState extends State<Editarperfil> {
 
   Future<void> cargarDatos() async {
     final doc = await FirebaseFirestore.instance.collection("users").doc(user!.uid).get();
-
     final data = doc.data()!;
 
     //Cargar datos actuales en los textfield
     nombreCont.text = data["nombre"] ?? "";
     pesoCont.text = "${data["peso"] ?? 0}";
     alturaCont.text = "${data["altura"] ?? 0}";
+    fotoURL = data["fotoPerfil"] ?? "";
 
     setState(() {
       cargando = false;
     });
   }
 
+  //Para seleccionar y subir la foto
+  Future<void> seleccionarImagen() async {
+    final picker = ImagePicker();
+    final XFile? file = await picker.pickImage(source: ImageSource.gallery);
+
+    if (file == null)
+      return; //Por si cancela el cambio
+
+    setState(() {
+      subiendoFoto = true;
+    });
+
+    String nombreArchivo = "perfil_${user!.uid}.jpg";
+    final ref = FirebaseStorage.instance.ref().child("fotosPerfil").child(nombreArchivo);
+
+    await ref.putFile(File(file.path));
+    String url = await ref.getDownloadURL();
+
+    await FirebaseFirestore.instance.collection("users").doc(user!.uid).update({"fotoPerfil": url,});
+
+    setState(() {
+      fotoURL = url;
+      subiendoFoto = false;
+    });
+  }
+
+  //Para guardar los cambios
   Future<void> guardarCambios() async {
     try {
       await FirebaseFirestore.instance.collection("users").doc(user!.uid).update({
@@ -95,6 +128,8 @@ class _EditarperfilState extends State<Editarperfil> {
                     SizedBox(height: 15,),
                     
                     Text("Editar perfil", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.orangeAccent.shade700),),
+                    SizedBox(height: 10,),
+                    _fotoPerfil(),
 
                     SizedBox(height: 25,),
 
@@ -158,6 +193,34 @@ class _EditarperfilState extends State<Editarperfil> {
         onPressed: () => accion(),
         child: Text(texto, style: TextStyle(fontSize: 18),),
       ),
+    );
+  }
+
+  Widget _fotoPerfil() {
+    return Column(
+      children: [
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            //Foto
+            CircleAvatar(
+              radius: 55,
+              backgroundColor: Colors.grey.shade200,
+              backgroundImage: (fotoURL != null && fotoURL!.isNotEmpty) ? NetworkImage(fotoURL!) : null,
+              child: (fotoURL == null || fotoURL!.isEmpty) ? Icon(Icons.person, size: 55, color: Colors.white,) : null,
+            ),
+
+            if (subiendoFoto) CircularProgressIndicator(color: Colors.orangeAccent,),
+          ],
+        ),
+        SizedBox(height: 10,),
+
+        TextButton.icon(
+            onPressed: subiendoFoto ? null : seleccionarImagen,
+            icon: Icon(Icons.photo, color: Colors.orange,),
+            label: Text("Cambiar foto"),
+        )
+      ],
     );
   }
 }
